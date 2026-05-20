@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+
+<!-- Ultimate Game Stash file-->
+<!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
+
+<html lang="en">
+
+<head>
+  <base href="https://cdn.jsdelivr.net/gh/genizy/UGS-Assets@main/fruit%20ninja/">
+
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+  <meta name="theme-color" content="#000000" />
+
+  <link rel="manifest" href="./manifest.json" />
+
+  <script src="poki-sdk.js"></script>
+
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="application-name" content="Fruit Ninja" />
+  <meta name="apple-mobile-web-app-title" content="Fruit Ninja" />
+  <meta name="msapplication-starturl" content="./" />
+
+  <title>Fruit Ninja</title>
+
+  <style>
+    @font-face {
+      font-family: gangofchinese;
+      src: url('assets/font/gangofchinese.ttf');
+    }
+
+    html,
+    body {
+      height: 100%;
+      width: 100% !important;
+      margin: 0;
+      background-color: #000000 !important;
+      overflow: hidden;
+    }
+
+    .fontLoader {
+      position: absolute;
+      left: -1000px;
+      visibility: hidden;
+    }
+
+    #phaser-canvas {
+      margin: 0 auto;
+      background-color: #000000;
+    }
+
+    body,
+    #content {
+      height: 100vh !important;
+      max-height: 100vh !important;
+    }
+
+    #divAds,
+    #tempads {
+      display: none;
+    }
+
+    #enable3d-three-canvas,
+    #enable3d-phaser-canvas {
+      min-width: 100%;
+      max-width: 100%;
+      max-width: -webkit-fill-available;
+      max-width: -moz-available;
+      max-width: fill-available;
+      margin: 0 auto;
+    }
+
+    @media (min-aspect-ratio: 1.85) {
+
+      #enable3d-three-canvas,
+      #enable3d-phaser-canvas {
+        width: 960px;
+        min-width: 640px;
+      }
+    }
+
+    @media (min-aspect-ratio: 8/4) {
+
+      #enable3d-three-canvas,
+      #enable3d-phaser-canvas {
+        min-width: 640px;
+      }
+    }
+  </style>
+
+  <noscript>Please enable javascript to continue using this application.</noscript>
+</head>
+
+<body>
+
+  <div class="fontLoader" style="font-family: gangofchinese;">-</div>
+  <div class="fontLoader" style="font-family: gangofchinese;">-</div>
+
+  <div id="content">
+    <div id="phaser-canvas"></div>
+  </div>
+
+  <style id="injectStyles">
+    html,
+    body {
+      background: none !important;
+    }
+  </style>
+
+  <!-- ================================= -->
+  <!-- SAVE SYSTEM -->
+  <!-- ================================= -->
+
+  <script>
+    // =========================
+    // GITHUB SAVE SYSTEM
+    // =========================
+
+    window.GameSave = {
+
+      save: function (key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+          console.log("Saved:", key);
+        } catch (e) {
+          console.error("Save failed:", e);
+        }
+      },
+
+      load: function (key, defaultValue = null) {
+        try {
+          const data = localStorage.getItem(key);
+          return data ? JSON.parse(data) : defaultValue;
+        } catch (e) {
+          console.error("Load failed:", e);
+          return defaultValue;
+        }
+      },
+
+      remove: function (key) {
+        localStorage.removeItem(key);
+      }
+    };
+
+    // =========================
+    // PLAYER DATA
+    // =========================
+
+    window.playerData = GameSave.load("fruitNinjaSave", {
+      highScore: 0,
+      coins: 0,
+      level: 1,
+      unlockedItems: [],
+      settings: {
+        music: true,
+        sound: true
+      }
+    });
+
+    console.log("Loaded Save:", window.playerData);
+
+    // =========================
+    // AUTO SAVE
+    // =========================
+
+    setInterval(() => {
+      GameSave.save("fruitNinjaSave", window.playerData);
+    }, 10000);
+
+    // Save when tab closes
+    window.addEventListener("beforeunload", () => {
+      GameSave.save("fruitNinjaSave", window.playerData);
+    });
+
+    // =========================
+    // EXAMPLE FUNCTIONS
+    // =========================
+
+    window.addCoins = function (amount) {
+      window.playerData.coins += amount;
+      GameSave.save("fruitNinjaSave", window.playerData);
+    };
+
+    window.setHighScore = function (score) {
+      if (score > window.playerData.highScore) {
+        window.playerData.highScore = score;
+        GameSave.save("fruitNinjaSave", window.playerData);
+      }
+    };
+
+    window.unlockItem = function (itemName) {
+      if (!window.playerData.unlockedItems.includes(itemName)) {
+        window.playerData.unlockedItems.push(itemName);
+        GameSave.save("fruitNinjaSave", window.playerData);
+      }
+    };
+
+    console.log("Save system loaded successfully");
+  </script>
+
+  <!-- GAME FILES -->
+
+  <script type="text/javascript" src="vendors.bundle.js"></script>
+  <script type="text/javascript" src="main.bundle.js"></script>
+
+</body>
+
+</html>
