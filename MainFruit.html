@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 
 <!-- Ultimate Game Stash file-->
-<!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
+<!-- For the regularly updating doc go to
+https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/
+-->
 
 <html lang="en">
 
@@ -9,8 +11,10 @@
   <base href="https://cdn.jsdelivr.net/gh/genizy/UGS-Assets@main/fruit%20ninja/">
 
   <meta charset="UTF-8" />
+
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 
   <meta name="theme-color" content="#000000" />
@@ -90,6 +94,31 @@
         min-width: 640px;
       }
     }
+
+    /* ========================= */
+    /* SAVE POPUP */
+    /* ========================= */
+
+    #savePopup {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      z-index: 999999;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+      border: 2px solid #ffffff33;
+    }
+
+    #savePopup.show {
+      opacity: 1;
+    }
   </style>
 
   <noscript>Please enable javascript to continue using this application.</noscript>
@@ -104,6 +133,10 @@
     <div id="phaser-canvas"></div>
   </div>
 
+  <!-- SAVE POPUP -->
+
+  <div id="savePopup">Saving...</div>
+
   <style id="injectStyles">
     html,
     body {
@@ -116,8 +149,23 @@
   <!-- ================================= -->
 
   <script>
+
     // =========================
-    // GITHUB SAVE SYSTEM
+    // SAVE POPUP FUNCTION
+    // =========================
+
+    function showSavePopup() {
+      const popup = document.getElementById("savePopup");
+
+      popup.classList.add("show");
+
+      setTimeout(() => {
+        popup.classList.remove("show");
+      }, 1500);
+    }
+
+    // =========================
+    // SAVE SYSTEM
     // =========================
 
     window.GameSave = {
@@ -125,7 +173,11 @@
       save: function (key, value) {
         try {
           localStorage.setItem(key, JSON.stringify(value));
-          console.log("Saved:", key);
+
+          console.log("Game Saved");
+
+          showSavePopup();
+
         } catch (e) {
           console.error("Save failed:", e);
         }
@@ -134,9 +186,13 @@
       load: function (key, defaultValue = null) {
         try {
           const data = localStorage.getItem(key);
+
           return data ? JSON.parse(data) : defaultValue;
+
         } catch (e) {
+
           console.error("Load failed:", e);
+
           return defaultValue;
         }
       },
@@ -147,64 +203,104 @@
     };
 
     // =========================
-    // PLAYER DATA
+    // LOAD SAVE
     // =========================
 
     window.playerData = GameSave.load("fruitNinjaSave", {
-      highScore: 0,
-      coins: 0,
-      level: 1,
-      unlockedItems: [],
-      settings: {
-        music: true,
-        sound: true
-      }
+      bestScore: 0
     });
 
     console.log("Loaded Save:", window.playerData);
 
     // =========================
-    // AUTO SAVE
+    // GET CURRENT SCORE
+    // =========================
+
+    window.currentScore = 0;
+
+    // =========================
+    // UPDATE BEST SCORE
+    // =========================
+
+    function updateBestScore() {
+
+      if (window.currentScore > window.playerData.bestScore) {
+
+        window.playerData.bestScore = window.currentScore;
+
+        console.log("New Best Score:",
+          window.playerData.bestScore);
+      }
+    }
+
+    // =========================
+    // AUTO SAVE EVERY 10 SEC
     // =========================
 
     setInterval(() => {
-      GameSave.save("fruitNinjaSave", window.playerData);
+
+      updateBestScore();
+
+      GameSave.save(
+        "fruitNinjaSave",
+        window.playerData
+      );
+
     }, 10000);
 
-    // Save when tab closes
+    // =========================
+    // SAVE WHEN TAB CLOSES
+    // =========================
+
     window.addEventListener("beforeunload", () => {
-      GameSave.save("fruitNinjaSave", window.playerData);
+
+      updateBestScore();
+
+      GameSave.save(
+        "fruitNinjaSave",
+        window.playerData
+      );
     });
 
     // =========================
-    // EXAMPLE FUNCTIONS
+    // FUNCTION TO UPDATE SCORE
     // =========================
 
-    window.addCoins = function (amount) {
-      window.playerData.coins += amount;
-      GameSave.save("fruitNinjaSave", window.playerData);
-    };
+    // USE THIS INSIDE YOUR GAME:
+    // setScore(123);
 
-    window.setHighScore = function (score) {
-      if (score > window.playerData.highScore) {
-        window.playerData.highScore = score;
-        GameSave.save("fruitNinjaSave", window.playerData);
+    window.setScore = function (score) {
+
+      window.currentScore = score;
+
+      if (score > window.playerData.bestScore) {
+
+        window.playerData.bestScore = score;
+
+        GameSave.save(
+          "fruitNinjaSave",
+          window.playerData
+        );
       }
     };
 
-    window.unlockItem = function (itemName) {
-      if (!window.playerData.unlockedItems.includes(itemName)) {
-        window.playerData.unlockedItems.push(itemName);
-        GameSave.save("fruitNinjaSave", window.playerData);
-      }
-    };
+    // =========================
+    // DISPLAY BEST SCORE
+    // =========================
+
+    console.log(
+      "Best Score:",
+      window.playerData.bestScore
+    );
 
     console.log("Save system loaded successfully");
+
   </script>
 
   <!-- GAME FILES -->
 
   <script type="text/javascript" src="vendors.bundle.js"></script>
+
   <script type="text/javascript" src="main.bundle.js"></script>
 
 </body>
