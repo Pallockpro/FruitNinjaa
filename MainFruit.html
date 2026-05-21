@@ -13,6 +13,8 @@
 
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 
+  <meta name="theme-color" content="#000000" />
+
   <title>Fruit Ninja</title>
 
   <!-- FIREBASE -->
@@ -20,25 +22,71 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
+  <!-- ORIGINAL GAME STYLE -->
+
   <style>
+
+    @font-face {
+      font-family: gangofchinese;
+      src: url('assets/font/gangofchinese.ttf');
+    }
 
     html,
     body {
       height: 100%;
-      width: 100%;
+      width: 100% !important;
       margin: 0;
-      background: black;
+      background-color: #000000 !important;
       overflow: hidden;
     }
 
-    #content {
-      height: 100vh;
-      width: 100vw;
+    .fontLoader {
+      position: absolute;
+      left: -1000px;
+      visibility: hidden;
     }
 
     #phaser-canvas {
-      width: 100%;
-      height: 100%;
+      margin: 0 auto;
+      background-color: #000000;
+    }
+
+    body,
+    #content {
+      height: 100vh !important;
+      max-height: 100vh !important;
+    }
+
+    #divAds,
+    #tempads {
+      display: none;
+    }
+
+    #enable3d-three-canvas,
+    #enable3d-phaser-canvas {
+      min-width: 100%;
+      max-width: 100%;
+      max-width: -webkit-fill-available;
+      max-width: -moz-available;
+      max-width: fill-available;
+      margin: 0 auto;
+    }
+
+    @media (min-aspect-ratio: 1.85) {
+
+      #enable3d-three-canvas,
+      #enable3d-phaser-canvas {
+        width: 960px;
+        min-width: 640px;
+      }
+    }
+
+    @media (min-aspect-ratio: 8/4) {
+
+      #enable3d-three-canvas,
+      #enable3d-phaser-canvas {
+        min-width: 640px;
+      }
     }
 
     /* SAVE POPUP */
@@ -70,6 +118,13 @@
 
 <body>
 
+  <!-- FONT PRELOAD -->
+
+  <div class="fontLoader" style="font-family: gangofchinese;">-</div>
+  <div class="fontLoader" style="font-family: gangofchinese;">-</div>
+
+  <!-- GAME -->
+
   <div id="content">
     <div id="phaser-canvas"></div>
   </div>
@@ -94,7 +149,7 @@
     };
 
     // =========================================
-    // INITIALIZE FIREBASE
+    // INIT FIREBASE
     // =========================================
 
     firebase.initializeApp(firebaseConfig);
@@ -102,10 +157,12 @@
     const db = firebase.firestore();
 
     // =========================================
-    // CREATE USER ID
+    // USER ID
     // =========================================
 
-    let userId = localStorage.getItem("fruitNinjaUserId");
+    let userId = localStorage.getItem(
+      "fruitNinjaUserId"
+    );
 
     if (!userId) {
 
@@ -162,7 +219,8 @@
 
         if (doc.exists) {
 
-          window.playerData = doc.data();
+          window.playerData =
+            doc.data();
 
           console.log(
             "Save Loaded:",
@@ -172,7 +230,7 @@
         } else {
 
           console.log(
-            "No save found. Creating new save."
+            "Creating New Save"
           );
 
           await saveGame();
@@ -181,11 +239,9 @@
       } catch (e) {
 
         console.error(
-          "Firebase load failed:",
+          "Load failed:",
           e
         );
-
-        // BACKUP LOCAL SAVE
 
         const backup =
           localStorage.getItem(
@@ -198,7 +254,7 @@
             JSON.parse(backup);
 
           console.log(
-            "Loaded local backup save"
+            "Loaded local backup"
           );
         }
       }
@@ -242,11 +298,13 @@
 
         localStorage.setItem(
           "fruitNinjaBackup",
-          JSON.stringify(window.playerData)
+          JSON.stringify(
+            window.playerData
+          )
         );
 
         console.log(
-          "Game Saved Successfully"
+          "Game Saved"
         );
 
         showSavePopup();
@@ -258,17 +316,17 @@
           e
         );
 
-        // SAVE LOCAL BACKUP
-
         localStorage.setItem(
           "fruitNinjaBackup",
-          JSON.stringify(window.playerData)
+          JSON.stringify(
+            window.playerData
+          )
         );
       }
     }
 
     // =========================================
-    // SET SCORE
+    // SCORE FUNCTION
     // =========================================
 
     window.setScore = function(score) {
@@ -280,14 +338,15 @@
         window.playerData.bestScore
       ) {
 
-        window.playerData.bestScore = score;
+        window.playerData.bestScore =
+          score;
 
         saveGame();
       }
     };
 
     // =========================================
-    // AUTO SAVE EVERY 10 SEC
+    // AUTO SAVE
     // =========================================
 
     setInterval(() => {
@@ -297,7 +356,7 @@
     }, 10000);
 
     // =========================================
-    // SAVE ON TAB CLOSE
+    // SAVE ON EXIT
     // =========================================
 
     window.addEventListener(
@@ -310,22 +369,22 @@
     );
 
     // =========================================
-    // LOAD SAVE ON START
+    // LOAD SAVE
     // =========================================
 
     loadSave();
 
     console.log(
-      "Firebase save system loaded"
+      "Save system loaded successfully"
     );
 
   </script>
 
-  <!-- GAME FILES -->
+  <!-- ORIGINAL GAME FILES -->
 
-  <script src="vendors.bundle.js"></script>
+  <script type="text/javascript" src="vendors.bundle.js"></script>
 
-  <script src="main.bundle.js"></script>
+  <script type="text/javascript" src="main.bundle.js"></script>
 
 </body>
 
