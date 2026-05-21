@@ -1,13 +1,9 @@
 <!DOCTYPE html>
 
-<!-- Ultimate Game Stash file-->
-<!-- For the regularly updating doc go to
-https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/
--->
-
 <html lang="en">
 
 <head>
+
   <base href="https://cdn.jsdelivr.net/gh/genizy/UGS-Assets@main/fruit%20ninja/">
 
   <meta charset="UTF-8" />
@@ -17,93 +13,41 @@ https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/
 
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 
-  <meta name="theme-color" content="#000000" />
-
-  <link rel="manifest" href="./manifest.json" />
-
-  <script src="poki-sdk.js"></script>
-
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="application-name" content="Fruit Ninja" />
-  <meta name="apple-mobile-web-app-title" content="Fruit Ninja" />
-  <meta name="msapplication-starturl" content="./" />
-
   <title>Fruit Ninja</title>
 
+  <!-- FIREBASE -->
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
   <style>
-    @font-face {
-      font-family: gangofchinese;
-      src: url('assets/font/gangofchinese.ttf');
-    }
 
     html,
     body {
       height: 100%;
-      width: 100% !important;
+      width: 100%;
       margin: 0;
-      background-color: #000000 !important;
+      background: black;
       overflow: hidden;
     }
 
-    .fontLoader {
-      position: absolute;
-      left: -1000px;
-      visibility: hidden;
+    #content {
+      height: 100vh;
+      width: 100vw;
     }
 
     #phaser-canvas {
-      margin: 0 auto;
-      background-color: #000000;
+      width: 100%;
+      height: 100%;
     }
 
-    body,
-    #content {
-      height: 100vh !important;
-      max-height: 100vh !important;
-    }
-
-    #divAds,
-    #tempads {
-      display: none;
-    }
-
-    #enable3d-three-canvas,
-    #enable3d-phaser-canvas {
-      min-width: 100%;
-      max-width: 100%;
-      max-width: -webkit-fill-available;
-      max-width: -moz-available;
-      max-width: fill-available;
-      margin: 0 auto;
-    }
-
-    @media (min-aspect-ratio: 1.85) {
-
-      #enable3d-three-canvas,
-      #enable3d-phaser-canvas {
-        width: 960px;
-        min-width: 640px;
-      }
-    }
-
-    @media (min-aspect-ratio: 8/4) {
-
-      #enable3d-three-canvas,
-      #enable3d-phaser-canvas {
-        min-width: 640px;
-      }
-    }
-
-    /* ========================= */
     /* SAVE POPUP */
-    /* ========================= */
 
     #savePopup {
       position: fixed;
       top: 15px;
       right: 15px;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.85);
       color: white;
       padding: 10px 16px;
       border-radius: 10px;
@@ -111,7 +55,7 @@ https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/
       font-size: 14px;
       z-index: 999999;
       opacity: 0;
-      transition: opacity 0.4s ease;
+      transition: opacity 0.3s ease;
       pointer-events: none;
       border: 2px solid #ffffff33;
     }
@@ -119,15 +63,12 @@ https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/
     #savePopup.show {
       opacity: 1;
     }
+
   </style>
 
-  <noscript>Please enable javascript to continue using this application.</noscript>
 </head>
 
 <body>
-
-  <div class="fontLoader" style="font-family: gangofchinese;">-</div>
-  <div class="fontLoader" style="font-family: gangofchinese;">-</div>
 
   <div id="content">
     <div id="phaser-canvas"></div>
@@ -137,171 +78,254 @@ https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/
 
   <div id="savePopup">Saving...</div>
 
-  <style id="injectStyles">
-    html,
-    body {
-      background: none !important;
-    }
-  </style>
-
-  <!-- ================================= -->
-  <!-- SAVE SYSTEM -->
-  <!-- ================================= -->
-
   <script>
 
-    // =========================
-    // SAVE POPUP FUNCTION
-    // =========================
+    // =========================================
+    // FIREBASE CONFIG
+    // =========================================
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDk4pnauEoa26zIglXPYLrPmQANn99BPss",
+      authDomain: "fruitninja-428a7.firebaseapp.com",
+      projectId: "fruitninja-428a7",
+      storageBucket: "fruitninja-428a7.firebasestorage.app",
+      messagingSenderId: "511253452386",
+      appId: "1:511253452386:web:91879b4131ba9ede21233b"
+    };
+
+    // =========================================
+    // INITIALIZE FIREBASE
+    // =========================================
+
+    firebase.initializeApp(firebaseConfig);
+
+    const db = firebase.firestore();
+
+    // =========================================
+    // CREATE USER ID
+    // =========================================
+
+    let userId = localStorage.getItem("fruitNinjaUserId");
+
+    if (!userId) {
+
+      userId = crypto.randomUUID();
+
+      localStorage.setItem(
+        "fruitNinjaUserId",
+        userId
+      );
+    }
+
+    console.log("User ID:", userId);
+
+    // =========================================
+    // SAVE POPUP
+    // =========================================
 
     function showSavePopup() {
-      const popup = document.getElementById("savePopup");
+
+      const popup =
+        document.getElementById("savePopup");
 
       popup.classList.add("show");
 
       setTimeout(() => {
+
         popup.classList.remove("show");
+
       }, 1500);
     }
 
-    // =========================
-    // SAVE SYSTEM
-    // =========================
+    // =========================================
+    // PLAYER DATA
+    // =========================================
 
-    window.GameSave = {
-
-      save: function (key, value) {
-        try {
-          localStorage.setItem(key, JSON.stringify(value));
-
-          console.log("Game Saved");
-
-          showSavePopup();
-
-        } catch (e) {
-          console.error("Save failed:", e);
-        }
-      },
-
-      load: function (key, defaultValue = null) {
-        try {
-          const data = localStorage.getItem(key);
-
-          return data ? JSON.parse(data) : defaultValue;
-
-        } catch (e) {
-
-          console.error("Load failed:", e);
-
-          return defaultValue;
-        }
-      },
-
-      remove: function (key) {
-        localStorage.removeItem(key);
-      }
-    };
-
-    // =========================
-    // LOAD SAVE
-    // =========================
-
-    window.playerData = GameSave.load("fruitNinjaSave", {
+    window.playerData = {
       bestScore: 0
-    });
-
-    console.log("Loaded Save:", window.playerData);
-
-    // =========================
-    // GET CURRENT SCORE
-    // =========================
+    };
 
     window.currentScore = 0;
 
-    // =========================
-    // UPDATE BEST SCORE
-    // =========================
+    // =========================================
+    // LOAD SAVE
+    // =========================================
 
-    function updateBestScore() {
+    async function loadSave() {
 
-      if (window.currentScore > window.playerData.bestScore) {
+      try {
 
-        window.playerData.bestScore = window.currentScore;
+        const doc = await db
+          .collection("saves")
+          .doc(userId)
+          .get();
 
-        console.log("New Best Score:",
-          window.playerData.bestScore);
+        if (doc.exists) {
+
+          window.playerData = doc.data();
+
+          console.log(
+            "Save Loaded:",
+            window.playerData
+          );
+
+        } else {
+
+          console.log(
+            "No save found. Creating new save."
+          );
+
+          await saveGame();
+        }
+
+      } catch (e) {
+
+        console.error(
+          "Firebase load failed:",
+          e
+        );
+
+        // BACKUP LOCAL SAVE
+
+        const backup =
+          localStorage.getItem(
+            "fruitNinjaBackup"
+          );
+
+        if (backup) {
+
+          window.playerData =
+            JSON.parse(backup);
+
+          console.log(
+            "Loaded local backup save"
+          );
+        }
       }
     }
 
-    // =========================
-    // AUTO SAVE EVERY 10 SEC
-    // =========================
+    // =========================================
+    // UPDATE BEST SCORE
+    // =========================================
 
-    setInterval(() => {
+    function updateBestScore() {
 
-      updateBestScore();
+      if (
+        window.currentScore >
+        window.playerData.bestScore
+      ) {
 
-      GameSave.save(
-        "fruitNinjaSave",
-        window.playerData
-      );
+        window.playerData.bestScore =
+          window.currentScore;
 
-    }, 10000);
+        console.log(
+          "New Best Score:",
+          window.playerData.bestScore
+        );
+      }
+    }
 
-    // =========================
-    // SAVE WHEN TAB CLOSES
-    // =========================
+    // =========================================
+    // SAVE GAME
+    // =========================================
 
-    window.addEventListener("beforeunload", () => {
+    async function saveGame() {
 
-      updateBestScore();
+      try {
 
-      GameSave.save(
-        "fruitNinjaSave",
-        window.playerData
-      );
-    });
+        updateBestScore();
 
-    // =========================
-    // FUNCTION TO UPDATE SCORE
-    // =========================
+        await db
+          .collection("saves")
+          .doc(userId)
+          .set(window.playerData);
 
-    // USE THIS INSIDE YOUR GAME:
-    // setScore(123);
+        localStorage.setItem(
+          "fruitNinjaBackup",
+          JSON.stringify(window.playerData)
+        );
 
-    window.setScore = function (score) {
+        console.log(
+          "Game Saved Successfully"
+        );
+
+        showSavePopup();
+
+      } catch (e) {
+
+        console.error(
+          "Save failed:",
+          e
+        );
+
+        // SAVE LOCAL BACKUP
+
+        localStorage.setItem(
+          "fruitNinjaBackup",
+          JSON.stringify(window.playerData)
+        );
+      }
+    }
+
+    // =========================================
+    // SET SCORE
+    // =========================================
+
+    window.setScore = function(score) {
 
       window.currentScore = score;
 
-      if (score > window.playerData.bestScore) {
+      if (
+        score >
+        window.playerData.bestScore
+      ) {
 
         window.playerData.bestScore = score;
 
-        GameSave.save(
-          "fruitNinjaSave",
-          window.playerData
-        );
+        saveGame();
       }
     };
 
-    // =========================
-    // DISPLAY BEST SCORE
-    // =========================
+    // =========================================
+    // AUTO SAVE EVERY 10 SEC
+    // =========================================
 
-    console.log(
-      "Best Score:",
-      window.playerData.bestScore
+    setInterval(() => {
+
+      saveGame();
+
+    }, 10000);
+
+    // =========================================
+    // SAVE ON TAB CLOSE
+    // =========================================
+
+    window.addEventListener(
+      "beforeunload",
+      () => {
+
+        saveGame();
+
+      }
     );
 
-    console.log("Save system loaded successfully");
+    // =========================================
+    // LOAD SAVE ON START
+    // =========================================
+
+    loadSave();
+
+    console.log(
+      "Firebase save system loaded"
+    );
 
   </script>
 
   <!-- GAME FILES -->
 
-  <script type="text/javascript" src="vendors.bundle.js"></script>
+  <script src="vendors.bundle.js"></script>
 
-  <script type="text/javascript" src="main.bundle.js"></script>
+  <script src="main.bundle.js"></script>
 
 </body>
 
